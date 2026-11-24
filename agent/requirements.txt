@@ -1,0 +1,4 @@
+# The terminal client uses Python 3.10+ standard library (including curses).
+# Optional system executable for live speech: ffplay (from FFmpeg).
+# Hold-Space microphone input requires ffmpeg on macOS and Ghostty/Kitty.
+# Gateway and model dependencies belong to the separately configured backend.

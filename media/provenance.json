@@ -1,0 +1,184 @@
+{
+  "capture_date": "2026-11-23",
+  "timezone": "America/Chicago",
+  "assets": [
+    {
+      "file": "conversation-demo.mp4",
+      "bytes": 483855,
+      "sha256": "2a6aafc21248df75cc89d2ed121c2354d6056e6ae4db99fdabcdbfe556b8f78b",
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "codec_type": "video",
+            "width": 1440,
+            "height": 900,
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "duration": "8.440000"
+        }
+      },
+      "caption": "Local conversation gesture demo using the page\u2019s existing scripted text examples; no model or audio.",
+      "source": [
+        "glyphs/conversation.html",
+        "scripts/capture_media.py"
+      ]
+    },
+    {
+      "file": "conversation-mobile.png",
+      "bytes": 180262,
+      "sha256": "9637851c60463de06d04747d16be6e91c1ed16a636c8a0bcfe3c68431c919966",
+      "width": 780,
+      "height": 2520,
+      "caption": "Local conversation gesture demo using the page\u2019s existing scripted text examples; no model or audio.",
+      "source": [
+        "glyphs/conversation.html",
+        "scripts/capture_media.py"
+      ]
+    },
+    {
+      "file": "conversation.png",
+      "bytes": 82256,
+      "sha256": "95ada20a24eb078e081280a4d599a94c186bb66094d9307666052a24afb197a9",
+      "width": 1440,
+      "height": 900,
+      "caption": "Local conversation gesture demo using the page\u2019s existing scripted text examples; no model or audio.",
+      "source": [
+        "glyphs/conversation.html",
+        "scripts/capture_media.py"
+      ]
+    },
+    {
+      "file": "expressions-demo.mp4",
+      "bytes": 1188735,
+      "sha256": "1ce17984b746f06d3833abeb59d4fc3a364c8c2029f59c74d6f0ffde1a4f2ba5",
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "codec_type": "video",
+            "width": 1440,
+            "height": 1080,
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "duration": "9.760000"
+        }
+      },
+      "caption": "Local expression and activity controls using the actual Codsworth glyph demo; no audio.",
+      "source": [
+        "glyphs/preview.html",
+        "scripts/capture_media.py"
+      ]
+    },
+    {
+      "file": "expressions.png",
+      "bytes": 108600,
+      "sha256": "2f27470d3a1aed1260aec4a9228e3c4557e072c5ab2e71ede77147a882325596",
+      "width": 1440,
+      "height": 1283,
+      "caption": "Local expression and activity controls using the actual Codsworth glyph demo; no audio.",
+      "source": [
+        "glyphs/preview.html",
+        "scripts/capture_media.py"
+      ]
+    },
+    {
+      "file": "terminal-demo.gif",
+      "bytes": 281078,
+      "sha256": "51644084bb656144b4ea3f057663f74bfa8f69ed89d917d7fc52ea330af74a5b",
+      "width": 864,
+      "height": 490,
+      "caption": "Actual Codsworth terminal renderer with scripted fixture conversation, tasks and workstreams. No model or backend connected.",
+      "source": [
+        "agent/terminal.py:Terminal.draw",
+        "agent/glyph_terminal.py:frame_png",
+        "scripts/capture_terminal.py"
+      ]
+    },
+    {
+      "file": "terminal-demo.mp4",
+      "bytes": 160690,
+      "sha256": "cd7e3a0dae19b9765568fa556444f8681f1bb44f7c756e6660c66af583be4038",
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "codec_type": "video",
+            "width": 1440,
+            "height": 816,
+            "r_frame_rate": "12/1"
+          }
+        ],
+        "format": {
+          "duration": "10.000000"
+        }
+      },
+      "caption": "Actual Codsworth terminal renderer with scripted fixture conversation, tasks and workstreams. No model or backend connected.",
+      "source": [
+        "agent/terminal.py:Terminal.draw",
+        "agent/glyph_terminal.py:frame_png",
+        "scripts/capture_terminal.py"
+      ]
+    },
+    {
+      "file": "terminal.png",
+      "bytes": 104130,
+      "sha256": "0fc4b3f4e75f795619fbb6ccfbccc00448bea2c7735954ad07d067c14ba0de84",
+      "width": 1440,
+      "height": 816,
+      "caption": "Actual Codsworth terminal renderer with scripted fixture conversation, tasks and workstreams. No model or backend connected.",
+      "source": [
+        "agent/terminal.py:Terminal.draw",
+        "agent/glyph_terminal.py:frame_png",
+        "scripts/capture_terminal.py"
+      ]
+    }
+  ],
+  "terminal_method": "The capture adapter invokes Terminal.draw against a curses-compatible screen surface, preserving the actual application cell positions, xterm colors, text wrapping, tray rendering, and composer. Pillow rasterizes that cell surface with Menlo. The original frame_png sprite is placed in the exact rectangle requested by the renderer\u2019s Kitty graphics path. This is renderer output from deterministic fixtures, not a capture of a real model session.",
+  "terminal_sequence": "10 seconds at 12 fps. Actual Alt+4 opens Streams, Alt+5 returns to Tasks, and actual character key events type an unsent draft. The real glyph animation uses a deterministic monotonic clock. The fixture label and no-model conversation note remain visible.",
+  "browser_method": "Headless Chromium, served from the local checkout over an ephemeral loopback HTTP server. All browser requests outside that server were blocked. Buttons, select menus, carousel navigation, Finish text and Interrupt were exercised through Playwright. PNG screenshots and Playwright screen recordings use the actual unmodified pages.",
+  "browser_notes": "Expression Talking is a manually selected activity, not lip-sync from audio. Conversation text is the existing scripted demo. No local audio file was selected; no original voice recordings or photographic references were captured.",
+  "privacy": "Terminal state lives in a disposable temporary directory; no saved conversations, private workspace, backend, trained model or production service was accessed. Only visible fictional fixture content is shown.",
+  "presentation": "MP4 files are silent H.264 with yuv420p and faststart. Prefer them for portfolios. terminal-demo.gif is a compact README animation. .qa/ contains local inspection artifacts and raw recordings; it is not needed in a public release.",
+  "checks": {
+    "terminal_render": "successful",
+    "terminal_screenshot": "visually inspected",
+    "terminal_video_streams": "visually inspected",
+    "expression_screenshot_and_video_contact_sheet": "visually inspected",
+    "conversation_screenshot_and_video_contact_sheet": "visually inspected",
+    "browser_page_errors": [],
+    "conversation_mobile_horizontal_overflow": false
+  },
+  "reproduce": [
+    "python scripts/capture_terminal.py",
+    "python scripts/capture_media.py"
+  ],
+  "capture_dependencies": [
+    "Python 3.14",
+    "Pillow 12.2.0",
+    "Playwright Chromium",
+    "ffmpeg"
+  ],
+  "source_sha256": {
+    "scripts/capture_terminal.py": "8f4aa30d1e1d9c3c26456575ab35315152ae5fee1f6b58c2c89b34edaeb8eff2",
+    "scripts/capture_media.py": "89b11640c813ee956f6591b2663f70ec895614d00a881bc1de1de49fa89c1b97",
+    "agent/terminal.py": "dc3005e7682f550b0ed2981ab5781572fea8409bf21cfcc9de2e045d3e32f762",
+    "agent/glyph_terminal.py": "3dcc55ca6908a17466187b5054a7c3cd1d87c8eefc0c7e4b3636b0d7c665d7cf",
+    "glyphs/preview.html": "345341981bee8f3ba5acf49a06caf14c648ab90274680922868c9bc0254f0496",
+    "glyphs/conversation.html": "d4e2381b6c853107675c1ed14d9527eaf7a67d252ec16c7f30ca9cd1f48e65bd",
+    "glyphs/renderer.js": "01667a1a1019c5e58354b8a1434bb0a13f0d391972a7728025267cdbfab1c9ac",
+    "glyphs/animator.js": "11da303a284dcc7d0a545907f58d6f5af0f60e06c927c3384b43b6694638490d",
+    "glyphs/interaction.js": "81a6792096c5e1a22430a34b90316f1c30f13ae0d3165b07a23aa1cf7567d2eb",
+    "glyphs/animations/manifest.json": "415ab2ceb29eeb69ae8bc968057540b554cfe1e77a865c11def62ddf3e5fd47c"
+  }
+}

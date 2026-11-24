@@ -1,0 +1,47 @@
+const {chromium} = require('playwright-core');
+const assert = require('node:assert/strict');
+const {pathToFileURL} = require('node:url');
+const path = require('node:path');
+const {selectAudio} = require('./audio-fixture.cjs');
+(async () => {
+ const browser = await chromium.launch({headless:true, executablePath:process.env.CODS_BROWSER_PATH||undefined});
+ try {
+  const page = await browser.newPage({viewport:{width:1000,height:900},reducedMotion:'reduce'});
+  const errors=[];page.on('pageerror',error=>errors.push(error.message));
+  const network=[];page.on('request',request=>{if(/^https?:/.test(request.url()))network.push(request.url());});
+  await page.goto(pathToFileURL(path.resolve(__dirname,'../glyphs/conversation.html')).href);
+  await page.waitForFunction(()=>animator.images.get(animator.key)?.ready);
+  assert.equal(await page.locator('#voice').getAttribute('src'),null);
+  await page.locator('#speech').click();
+  assert.equal(await page.locator('#error').textContent(),'Choose a local audio file first.');
+  await selectAudio(page);
+  assert.match(await page.locator('#voice').getAttribute('src'),/^blob:/);
+  await page.locator('#text').click();
+  assert.equal(await page.locator('#status').textContent(),'neutral · thinking');
+  await page.waitForFunction(()=>animator.expression==='pleased' && animator.activity==='idle');
+  assert.match(await page.locator('#transcript').textContent(),/Splendid/);
+  await page.locator('#finish').click();assert.equal(await page.locator('#status').textContent(),'neutral · idle');
+  await page.locator('#mood').selectOption('annoyed');await page.locator('#speech').click();
+  await page.waitForFunction(()=>animator.expression==='annoyed' && animator.activity==='talking');
+  await page.locator('#voice').evaluate(audio=>audio.pause());
+  assert.equal(await page.locator('#status').textContent(),'neutral · idle');
+  await page.locator('#voice').evaluate(audio=>audio.play());
+  await page.waitForFunction(()=>animator.activity==='talking');
+  await selectAudio(page,'replacement-tone.wav');
+  assert.equal(await page.locator('#voice').evaluate(audio=>audio.paused),true);
+  await page.locator('#speech').click();
+  await page.waitForFunction(()=>animator.activity==='talking');
+  await page.locator('#interrupt').click();
+  assert.equal(await page.locator('#status').textContent(),'neutral · listening');
+  assert.equal(await page.locator('#voice').evaluate(audio=>audio.paused),true);
+  await page.locator('#text').click();await page.locator('#interrupt').click();
+  await page.waitForTimeout(750);assert.equal(await page.locator('#status').textContent(),'neutral · idle');
+  await page.locator('#still').uncheck();await page.waitForFunction(()=>animator.frameRequest!==null);
+  await page.locator('#still').check();await page.waitForFunction(()=>animator.frameRequest===null);
+  if(process.env.CODS_SCREENSHOT)await page.screenshot({path:process.env.CODS_SCREENSHOT,fullPage:true});
+  await page.setViewportSize({width:390,height:844});
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+  assert.deepEqual(errors,[]);assert.deepEqual(network,[]);assert.equal(await page.locator('#error').textContent(),'');
+  console.log('Conversation browser: thinking, text reveal/finish, real audio pause/resume, interruption, reduced motion and mobile passed.');
+ } finally {await browser.close();}
+})().catch(error=>{console.error(error);process.exitCode=1;});

@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Codsworth expressions</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#121418;color:#e9e8db;font:16px system-ui}main{max-width:1060px;margin:auto;padding:40px 24px}h1{font-size:36px;margin:0 0 8px}p{color:#aeb4ac;line-height:1.6}h2,legend{font-size:16px;font-weight:600}legend{padding:0 0 12px}fieldset{padding:0;border:0;margin:0 0 28px}.row{display:flex;gap:24px;flex-wrap:wrap;margin:28px 0}.card{background:#1b1f22;border:1px solid #303631;border-radius:16px;padding:24px;flex:1;min-width:250px}.stage{text-align:center;flex:1.1}.sprite{image-rendering:pixelated;width:288px;max-width:100%;height:auto}.buttons{display:flex;gap:8px;flex-wrap:wrap}button{border:1px solid #414a41;border-radius:8px;background:#222925;color:#d6dbd0;padding:10px 14px;font:inherit;cursor:pointer}button[aria-pressed=true]{background:#d7b478;color:#24271f;border-color:#d7b478}button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #f3dcaf;outline-offset:3px}button:disabled{opacity:.55;cursor:default}.ref{width:100%;max-height:280px;object-fit:contain}a{color:#e8b26d}figure{margin:0}figcaption{margin-top:12px;font-size:14px;color:#aeb4ac}audio{width:100%;margin-top:8px}.status{color:#e8b26d;min-height:24px}label{display:flex;gap:10px;align-items:center;font-size:14px}.error{color:#f4a997}.refs{margin-top:36px}noscript img{width:288px}
+.carousel-toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:30px}.carousel-toolbar h2{margin:0}.carousel-nav{display:flex;gap:8px}.carousel{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-color:#6d7762 #1b1f22;padding:12px 0 20px;overscroll-behavior-x:contain}.expression-card{flex:0 0 236px;scroll-snap-align:start;border:1px solid #303631;background:#1b1f22;border-radius:14px;padding:16px;text-align:center}.expression-card.selected{border-color:#d7b478}.expression-card h3{margin:0 0 6px;font-size:17px}.expression-card canvas{width:192px;height:224px;image-rendering:pixelated}.expression-card p{font-size:13px;min-height:40px;margin:8px 0 14px}.expression-card button{width:100%;font-size:14px}.carousel-dots{display:flex;justify-content:center;gap:8px;margin:0 0 16px}.carousel-dots button{width:10px;height:10px;border-radius:50%;padding:0;background:#414a41}.carousel-dots button[aria-current=true]{background:#d7b478}.carousel:focus-visible{outline:2px solid #d7b478;outline-offset:4px}
+</style>
+<main>
+<h1>Codsworth</h1><p>A little character, with a mood of his own.</p>
+<section aria-label="Expression carousel">
+<div class="carousel-toolbar"><h2>Find his expression</h2><div class="carousel-nav"><button type="button" id="previous" aria-label="Previous expression" aria-controls="expression-carousel">←</button><button type="button" id="next" aria-label="Next expression" aria-controls="expression-carousel">→</button></div></div>
+<div id="expression-carousel" class="carousel" tabindex="0" aria-label="Animated expressions; scroll or use arrow keys"></div>
+</section>
+<div class="row">
+<section class="card stage"><canvas id="codsworth" class="sprite" role="img" aria-label="Codsworth, neutral and idle"></canvas><p class="status" id="status" aria-live="polite">Neutral · Idle</p><noscript><img src="codsworth.png" alt="Codsworth"><p>Enable JavaScript to try the expressions.</p></noscript></section>
+<section class="card">
+<fieldset><legend>Expression</legend><div class="buttons" id="expressions">
+<button type="button" data-expression="neutral" aria-pressed="true">Neutral</button>
+<button type="button" data-expression="pleased" aria-pressed="false">Pleased</button>
+<button type="button" data-expression="skeptical" aria-pressed="false">Skeptical</button>
+<button type="button" data-expression="concerned" aria-pressed="false">Concerned</button>
+<button type="button" data-expression="annoyed" aria-pressed="false">Annoyed</button>
+</div></fieldset>
+<fieldset><legend>Activity</legend><div class="buttons" id="activities">
+<button type="button" data-activity="idle" aria-pressed="true">Idle</button>
+<button type="button" data-activity="talking" aria-pressed="false">Talking</button>
+<button type="button" data-activity="listening" aria-pressed="false">Listening</button>
+<button type="button" data-activity="thinking" aria-pressed="false">Thinking</button>
+</div></fieldset>
+<label><input id="still" type="checkbox"> Pause motion</label>
+<h2>Try your own audio</h2><p>Choose a local audio file to drive the speaking animation. It stays in your browser and is not uploaded.</p><label>Audio file <input type="file" id="audio-file" accept="audio/*"></label>
+<audio id="voice" controls preload="metadata"></audio>
+<p id="error" class="error" role="alert"></p>
+</section></div>
+
+<p><a href="conversation.html">Speech &amp; text reactions</a> · <a href="actions.html">Screen interactions</a> · <a href="../index.html">Demo index</a></p>
+</main>
+<script src="animations/manifest.js"></script><script src="renderer.js"></script><script src="animator.js"></script>
+<script>
+const title = value => value[0].toUpperCase() + value.slice(1);
+const canvas = document.querySelector('#codsworth');
+const motion = matchMedia('(prefers-reduced-motion: reduce)');
+const still = document.querySelector('#still');
+const previews = [];
+const cards = [];
+still.checked = motion.matches;
+const animator = new CodsworthAnimator(canvas, CODSWORTH_ANIMATIONS, {
+  reducedMotion: motion.matches,
+  onChange({expression, activity}) {
+    document.querySelector('#status').textContent = `${title(expression)} · ${title(activity)}`;
+    canvas.setAttribute('aria-label', `Codsworth, ${expression} and ${activity}`);
+    previews.forEach(preview => preview.setActivity(activity));
+    cards.forEach(card => card.classList.toggle('selected', card.dataset.mood === expression));
+    for (const button of document.querySelectorAll('[data-expression]')) button.setAttribute('aria-pressed', String(button.dataset.expression === expression));
+    for (const button of document.querySelectorAll('[data-activity]')) button.setAttribute('aria-pressed', String(button.dataset.activity === activity));
+  },
+  onError(error) { document.querySelector('#error').textContent = error.message; },
+});
+for (const button of document.querySelectorAll('[data-expression]')) button.addEventListener('click', () => animator.setExpression(button.dataset.expression));
+for (const button of document.querySelectorAll('[data-activity]')) button.addEventListener('click', () => animator.setActivity(button.dataset.activity));
+function setMotion(reduced) {
+  animator.setReducedMotion(reduced);
+  previews.forEach(preview => preview.setReducedMotion(reduced));
+}
+still.addEventListener('change', () => setMotion(still.checked));
+motion.addEventListener('change', event => { still.checked = event.matches; setMotion(event.matches); });
+const audio = document.querySelector('#voice');
+animator.bindAudio(audio);
+let audioObjectUrl;
+document.querySelector('#audio-file').addEventListener('change', event => {const file=event.target.files[0];if(!file)return;audio.pause();if(audioObjectUrl)URL.revokeObjectURL(audioObjectUrl);audioObjectUrl=URL.createObjectURL(file);audio.src=audioObjectUrl;document.querySelector('#error').textContent='';});
+for (const event of ['play', 'pause', 'ended', 'error']) audio.addEventListener(event, () => {
+  for (const button of document.querySelectorAll('[data-activity]')) button.disabled = !audio.paused && !audio.ended && !audio.error;
+});
+audio.addEventListener('error', () => { document.querySelector('#error').textContent = 'This audio file could not be played. Choose another local audio file.'; });
+const carousel = document.querySelector('#expression-carousel');
+const descriptions = {
+  neutral: 'At your service. A calm, steady hover.',
+  pleased: 'A little hop on arrival, then a buoyant hover.',
+  skeptical: 'A doubtful lean and one questioning claw.',
+  concerned: 'Arms tucked in. Leaning closer to help.',
+  annoyed: 'Sinks lower, clamps his claw and holds a quiet glare.',
+};
+for (const expression of [...CODSWORTH_ANIMATIONS.expressions, 'thinking']) {
+  const isThinking = expression === 'thinking';
+  const card = document.createElement('article');
+  card.className = 'expression-card' + (expression === 'neutral' ? ' selected' : '');
+  card.dataset.mood = expression;
+  const heading = document.createElement('h3'); heading.textContent = title(expression);
+  const mini = document.createElement('canvas'); mini.setAttribute('role', 'img'); mini.setAttribute('aria-label', `${title(expression)} Codsworth`);
+  const description = document.createElement('p'); description.textContent = isThinking ? 'Claw to chassis, a thoughtful tilt and a slow optic scan.' : descriptions[expression];
+  const choose = document.createElement('button'); choose.type = 'button'; choose.textContent = isThinking ? 'Try thinking' : 'Try this expression';
+  choose.setAttribute('aria-label', `Try ${expression} expression`);
+  choose.addEventListener('click', () => isThinking ? animator.setActivity('thinking') : animator.setExpression(expression));
+  if (isThinking) choose.dataset.activity = 'thinking';
+  card.append(heading, mini, description, choose); carousel.append(card); cards.push(card);
+  const preview = new CodsworthAnimator(mini, CODSWORTH_ANIMATIONS, {reducedMotion: motion.matches});
+  if (isThinking) preview.setActivity('thinking'); else preview.setExpression(expression); previews.push(preview);
+}
+let carouselIndex = 0;
+const previous = document.querySelector('#previous');
+const next = document.querySelector('#next');
+function updateCarousel() {
+  const step = cards.length > 1 ? cards[1].offsetLeft - cards[0].offsetLeft : 1;
+  carouselIndex = Math.round(carousel.scrollLeft / step);
+  previous.disabled = carousel.scrollLeft <= 1;
+  next.disabled = carousel.scrollLeft >= carousel.scrollWidth - carousel.clientWidth - 1;
+}
+function goTo(index) {
+  const card = cards[Math.max(0, Math.min(cards.length - 1, index))];
+  carousel.scrollTo({left: card.offsetLeft - cards[0].offsetLeft, behavior: still.checked ? 'instant' : 'smooth'});
+}
+previous.addEventListener('click', () => goTo(carouselIndex - 1));
+next.addEventListener('click', () => goTo(carouselIndex + 1));
+carousel.addEventListener('scroll', updateCarousel, {passive: true});
+carousel.addEventListener('keydown', event => {
+  if (event.target !== carousel) return;
+  if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+    event.preventDefault(); goTo(carouselIndex + (event.key === 'ArrowRight' ? 1 : -1));
+  }
+});
+window.addEventListener('resize', updateCarousel);
+updateCarousel();
+window.addEventListener('pagehide', () => { animator.destroy(); previews.forEach(preview => preview.destroy()); }, {once: true});
+</script></html>

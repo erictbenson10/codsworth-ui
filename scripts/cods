@@ -1,0 +1,5 @@
+#!/bin/sh
+# Portable launcher: the caller supplies a compatible local or remote gateway.
+set -eu
+cods_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+exec python3 "$cods_root/agent/terminal.py" --url "${CODS_URL:-http://127.0.0.1:18042}" "$@"

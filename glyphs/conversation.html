@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Codsworth · Conversation gestures</title>
+<style>
+:root{color-scheme:dark;font:17px/1.55 system-ui;background:#111518;color:#e8e9df}body{max-width:900px;margin:auto;padding:28px}a{color:#c6d6ba}h1{font-size:2rem;margin-bottom:8px}.layout{display:grid;grid-template-columns:300px 1fr;gap:24px;align-items:center}.stage{background:#1c2224;border:1px solid #354039;border-radius:24px;text-align:center;padding:20px}canvas{width:240px;height:280px;image-rendering:pixelated;max-width:100%;object-fit:contain}button,select{font:inherit;background:#242e29;color:inherit;border:1px solid #576451;border-radius:8px;padding:10px;margin:5px 4px 5px 0}button:focus-visible,a:focus-visible,select:focus-visible{outline:3px solid #badb9e}#transcript{min-height:110px;padding:20px;border-left:3px solid #9aab88;background:#1b2220}#status{font-size:.85rem;color:#b8c1b0}audio{width:100%;margin-top:14px}.note{color:#b8c1b0;font-size:.85rem}#error{color:#ffbcab}@media(max-width:620px){body{padding:18px}.layout{grid-template-columns:1fr}.stage{padding:12px}canvas{width:192px;height:224px}}
+</style></head><body>
+<a href="preview.html">← Expression carousel</a>
+<h1>Conversation gestures</h1>
+<p>A little lift when pleased. A lower, reluctant hover when annoyed. Expressions enter with the reply and settle when it finishes.</p>
+<div class="layout"><div class="stage"><canvas id="codsworth" role="img" aria-label="Animated Codsworth"></canvas><div id="status" role="status">neutral · idle</div></div>
+<div><label for="mood">Reply expression</label><br><select id="mood"><option value="pleased">Pleased</option><option value="annoyed">Annoyed</option><option value="skeptical">Skeptical</option><option value="concerned">Concerned</option><option value="neutral">Neutral</option></select>
+<div><button id="text">Try text</button><button id="speech">Try speech</button><button id="interrupt">Interrupt</button><button id="finish">Finish text</button></div>
+<p id="transcript" aria-live="polite">Choose an expression, then try a reply.</p>
+<label><input type="checkbox" id="still"> Reduced motion</label>
+<label>Local audio file <input type="file" id="audio-file" accept="audio/*"></label>
+<audio id="voice" controls preload="metadata"></audio>
+<p class="note">Text examples are scripted. Speech uses an audio file you select locally; the selected expression is a demo cue, not an emotion inferred from the recording. Press Try speech to begin a new reply before using playback controls.</p>
+<p id="error" role="alert"></p></div></div>
+<script src="animations/manifest.js"></script><script src="renderer.js"></script><script src="animator.js"></script><script src="interaction.js"></script>
+<script>
+const statusNode=document.querySelector('#status');
+const still=document.querySelector('#still');
+still.checked=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const animator=new CodsworthAnimator(document.querySelector('canvas'),CODSWORTH_ANIMATIONS,{
+ reducedMotion:still.checked,onChange:state=>{statusNode.textContent=`${state.expression} · ${state.activity}`;},
+ onError:error=>{document.querySelector('#error').textContent=error.message;}
+});
+const interaction=new CodsworthInteraction(animator);
+let voice=document.querySelector('#voice');
+let audioObjectUrl;
+document.querySelector('#audio-file').addEventListener('change',event=>{const file=event.target.files[0];if(!file)return;interaction.interrupt({medium:'speech'});voice.pause();if(audioObjectUrl)URL.revokeObjectURL(audioObjectUrl);audioObjectUrl=URL.createObjectURL(file);voice.src=audioObjectUrl;document.querySelector('#error').textContent='';});
+const transcript=document.querySelector('#transcript');
+const lines={pleased:'Splendid! Everything is in order. A rare pleasure, these days.',annoyed:'Another mess? Very well, sir. I shall fetch the mop. Again.',skeptical:'An intriguing plan, sir. Shall I keep the fire extinguisher handy?',concerned:'Do be careful, sir. I would rather we both returned in one piece.',neutral:'At your service, sir. What shall we attend to next?'};
+let generation=0,activeReply=null,revealTimer=null;
+function begin(medium){
+ clearTimeout(revealTimer); document.querySelector('#error').textContent='';
+ activeReply={id:`demo-${++generation}`,generation,medium,expression:document.querySelector('#mood').value};
+ interaction.beginReply(activeReply);return activeReply;
+}
+document.querySelector('#text').onclick=()=>{
+ const reply=begin('text');transcript.textContent='Codsworth is considering his reply…';
+ revealTimer=setTimeout(()=>{
+  if(activeReply!==reply)return;
+  transcript.textContent=lines[reply.expression];interaction.revealReply(reply,{text:transcript.textContent});
+ },650);
+};
+document.querySelector('#speech').onclick=async()=>{
+ if(!voice.getAttribute('src')){document.querySelector('#error').textContent='Choose a local audio file first.';return;}
+ const reply=begin('speech');transcript.textContent='Local audio playback demo.';
+ const nextVoice=voice.cloneNode(true);voice.replaceWith(nextVoice);voice=nextVoice;
+ voice.currentTime=0;interaction.bindSpeech(reply,voice);
+ try{await voice.play();}catch(error){if(activeReply===reply){interaction.finishReply(reply);document.querySelector('#error').textContent=error.message;}}
+};
+document.querySelector('#interrupt').onclick=()=>{
+ clearTimeout(revealTimer);interaction.interrupt({medium:activeReply?.medium||'text'});activeReply=null;
+ transcript.textContent='Interrupted. Ready for you.';
+};
+document.querySelector('#finish').onclick=()=>{
+ if(activeReply?.medium!=='text')return;
+ clearTimeout(revealTimer);interaction.finishReply(activeReply);activeReply=null;
+};
+still.onchange=()=>animator.setReducedMotion(still.checked);
+matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',event=>{
+ still.checked=event.matches;animator.setReducedMotion(event.matches);
+});
+window.addEventListener('pagehide',()=>{clearTimeout(revealTimer);interaction.destroy();animator.destroy();},{once:true});
+</script></body></html>
